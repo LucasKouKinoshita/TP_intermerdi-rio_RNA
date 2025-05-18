@@ -37,7 +37,7 @@ calculate_saliencies_for_w <- function(Haug, w) {
   return(as.vector(saliencies)) # Retorna como vetor
 }
 
-YELM_predict <- function(xin, Z_pruned, W_pruned, par_bias_input){
+YELM_OBD <- function(xin, Z_pruned, W_pruned, par_bias_input){
   if (par_bias_input == 1){
     xin_aug_input <- cbind(1, xin)
   } else {
