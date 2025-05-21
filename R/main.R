@@ -44,7 +44,7 @@ final_p_values <- numeric(reps) # Para registrar o número de neurônios após a
 # Isso garante que cada repetição tenha seu próprio Z aleatório e poda, mas o conjunto de repetições é o mesmo.
 iteration_seeds <- sample(1:(100*reps), reps)
 
-
+cat("\n\n############################# INICIANDO TESTES random prunned ELM ###########################\n")
 for (r in 1:reps) {
   current_iter_seed <- iteration_seeds[r]
   set.seed(current_iter_seed) # Semente para a amostragem de dados desta repetição
