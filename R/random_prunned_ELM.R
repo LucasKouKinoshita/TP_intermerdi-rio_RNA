@@ -1,6 +1,6 @@
 library("corpcor")
 
-ELM_pruned <- function(xin, yin, p_initial, par, pruning_rate = 0.0, seed_val = NULL) {
+ELM_pruned <- function(xin, yin, p_initial, par_bias_input, pruning_rate = 0.0, seed_val = NULL) {
   # Definir semente para reprodutibilidade da geração de Z e da poda, se fornecida
   if (!is.null(seed_val)) {
     set.seed(seed_val)
@@ -9,7 +9,7 @@ ELM_pruned <- function(xin, yin, p_initial, par, pruning_rate = 0.0, seed_val = 
   n_features <- dim(xin)[2]
   
   # Adicionar bias à camada de entrada (coluna de 1s em xin)
-  if (par == 1) {
+  if (par_bias_input == 1) {
     xin_aug <- cbind(1, xin)
     # Z: pesos entre entrada (+bias) e camada oculta. Dim: (n_features+1) x p_initial
     Z_full <- matrix(runif((n_features + 1) * p_initial, -0.5, 0.5), nrow = (n_features + 1), ncol = p_initial)
@@ -48,15 +48,14 @@ ELM_pruned <- function(xin, yin, p_initial, par, pruning_rate = 0.0, seed_val = 
   
   # w: Pesos da camada de saída. Dim: (current_p + 1) x 1
   w <- pseudoinverse(Haug) %*% yin
-  
-  return(list(w = w, H = H_final, Z = Z_final, p_final = current_p))
+  return(list(W = w, Z = Z_final, p_final = current_p))
 }
 
 ## saída ELM para valores -1 e +1 (compatível com Z podado)
-YELM_pruned <- function(xin, Z_final, W, par) { # Z_final é o Z após a poda
+YELM_pruned <- function(xin, Z_final, W_final, par_bias_input) { # Z_final é o Z após a poda
   # n <- dim(xin)[2] # Não é usado se Z_final já tem as dimensões corretas
   
-  if (par == 1) {
+  if (par_bias_input == 1) {
     xin_aug <- cbind(1, xin)
   } else {
     xin_aug <- xin
@@ -64,7 +63,7 @@ YELM_pruned <- function(xin, Z_final, W, par) { # Z_final é o Z após a poda
   
   H <- tanh(xin_aug %*% Z_final) # Usa Z_final (potencialmente podado)
   Haug <- cbind(1, H)
-  Yhat <- sign(Haug %*% W)
+  Yhat <- sign(Haug %*% W_final)
   
   return(Yhat)
 }
