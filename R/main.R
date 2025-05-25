@@ -35,14 +35,12 @@ datasets_config <- list(
   function() generate_polynomial_data(degree = 0)  # Aproximação sinusoidal (degree=0 no meu exemplo é sin)
 )
 
-# 4. Lista de Modelos e Seus Parâmetros Específicos
-# Os nomes das funções ('train_fn_name', 'predict_fn_name') devem corresponder
-# exatamente aos nomes das funções definidas/carregadas.
+# Parametros dos modelos
 models_config <- list(
   list(name = "StdELM",
-       train_fn_name = "ELM",       # Sua função ELM(xin, yin, p, par)
-       predict_fn_name = "YELM",    # Sua função YELM(xin, Z, W, par)
-       params = list(p = 150, par = 1) # Estes nomes (p, par) devem bater com ELM
+       train_fn_name = "ELM",      
+       predict_fn_name = "YELM",   
+       params = list(p = 150, par = 1) 
   ),
   list(name = "RandomPrunedELM",
        train_fn_name = "ELM_pruned", 
@@ -50,33 +48,30 @@ models_config <- list(
        params = list(p_initial = 150, par = 1, pruning_rate = 0.2, seed_val_offset = 100) 
   ),
   list(name = "L2_ELM",
-       train_fn_name = "ELM_L2", # Nome da sua função
-       predict_fn_name = "YELM_L2", # Nome da sua função
-       params = list(p = 150, par = 1, L = 0.01) # 'L' para lambda
+       train_fn_name = "ELM_L2", 
+       predict_fn_name = "YELM_L2", 
+       params = list(p = 150, par = 1, L = 0.01) 
   ),
   list(name = "OBD_ELM",
-       train_fn_name = "run_obd_elm_process", # <-- MUDE AQUI
+       train_fn_name = "run_obd_elm_process", 
        predict_fn_name = "YELM_OBD", 
-       params = list(p_initial = 100, par_bias_input = 1, pruning_fraction = 0.1, 
+       params = list(p_initial = 150, par_bias_input = 1, pruning_fraction = 0.1, 
                      obd_max_iterations = 10, min_neurons = 5, 
-                     seed_val_offset = 300) # Adicionado seed_val_offset
+                     seed_val_offset = 300) 
   ),
   list(name = "GAP_ELM",
        train_fn_name = "ELM_GAP", 
        predict_fn_name = "YELM_GAP_predict", 
-       params = list(p_initial = 50, # Reduzido para GAP ser mais rápido em testes
+       params = list(p_initial = 150,
                      par_bias_input = 1, 
-                     ga_pop_size = 20, # Reduzido 
-                     ga_max_iter = 30, # Reduzido
+                     ga_pop_size = 20, 
+                     ga_max_iter = 30, 
                      alpha_fitness = 0.99,
                      ga_pmutation = 0.1, ga_pcrossover = 0.8, ga_elitism_fraction = 0.1,
                      use_press_loo = FALSE,
-                     seed_val_offset = 200) # Offset para a semente interna do AG
+                     seed_val_offset = 200)
   )
 )
-# Certifique-se que as funções de treino retornam uma lista com W, Z, p_final
-# e para GAP_ELM, opcionalmente, best_fitness.
-# As funções de predição devem aceitar (xin, Z_final, W_final, par)
 
 all_cv_summaries <- list()
 all_cv_detailed_fold_results <- list()
@@ -90,7 +85,7 @@ for (i in 1:length(datasets_config)) {
   for (j in 1:length(models_config)) {
     model_setup <- models_config[[j]]
     
-    # Verifica se as funções existem (essencial para depuração)
+    # Verifica se as funções existem 
     if (!exists(model_setup$train_fn_name, mode = "function")) {
       stop(paste("Função de treino '", model_setup$train_fn_name, "' não encontrada para o modelo '", model_setup$name, "'."))
     }
@@ -98,7 +93,6 @@ for (i in 1:length(datasets_config)) {
       stop(paste("Função de predição '", model_setup$predict_fn_name, "' não encontrada para o modelo '", model_setup$name, "'."))
     }
     
-    # Chamar a função run_single_experiment_cv (definida em utils_experiment_helpers.R)
     experiment_cv_result <- run_single_experiment_cv(
       X_data = current_data_list$X,
       Y_data = current_data_list$Y,
@@ -107,8 +101,8 @@ for (i in 1:length(datasets_config)) {
       model_name = model_setup$name,
       train_fn = get(model_setup$train_fn_name), 
       predict_fn = get(model_setup$predict_fn_name), 
-      model_params = model_setup$params, # Parâmetros específicos do modelo
-      global_cv_params = global_cv_config # Parâmetros globais da CV (k_folds, master_fold_seed)
+      model_params = model_setup$params,
+      global_cv_params = global_cv_config 
     )
     
     summary_key <- paste(current_data_list$name, model_setup$name, sep = "_")
