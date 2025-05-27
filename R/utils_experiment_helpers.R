@@ -38,19 +38,7 @@ run_single_experiment_cv <- function(X_data, Y_data, dataset_name, problem_type,
     }
     current_model_params_for_fold$seed_val_offset <- NULL 
     
-    # ***** CORREÇÃO PRINCIPAL AQUI *****
-    # Passar dados de treino como 'xin' e 'yin' para compatibilidade com ELM(), ELM_pruned(), ELM_L2()
-    # As funções mais complexas (OBD_process, GAP) também devem ser adaptadas para esperar 'xin' e 'yin'.
     train_call_args <- c(list(xin = xin_cv_train, yin = yin_cv_train), current_model_params_for_fold)
-    
-    # Remover quaisquer argumentos nulos que não sejam formais da função (pode causar erro)
-    # E garantir que os nomes em train_call_args correspondam aos da assinatura de train_fn
-    # Uma abordagem mais robusta seria mapear explicitamente os nomes dos parâmetros
-    # da lista model_params para os nomes esperados pela train_fn.
-    # Por ora, confiamos que os nomes em model_params (ex: 'p', 'par', 'p_initial') estão corretos.
-    
-    # Filtrar argumentos não formais se necessário, ou garantir que train_fn os ignore com ...
-    # Aqui, vamos assumir que do.call com a lista nomeada funciona se os nomes baterem.
     
     trained_model_output <- do.call(train_fn, train_call_args)
     
@@ -72,28 +60,6 @@ run_single_experiment_cv <- function(X_data, Y_data, dataset_name, problem_type,
         Z_eval <- matrix(0, nrow = n_feat_pred_fold, ncol = 0)
       }
       
-      # Assegurar que os nomes dos argumentos para predict_fn sejam os esperados (xin, Z_final, W_final, par)
-      # As funções YELM, YELM_pruned, YELM_L2 esperam 'par'.
-      # YELM_OBD e YELM_GAP_predict esperam 'par_bias_input'. Ajuste aqui ou nas funções.
-      # Por simplicidade, vou assumir que predict_fn pode lidar com 'par' ou 'par_bias_input' se
-      # o model_params tiver o nome correto que a função de predição específica espera.
-      # A lógica do %||% já tenta pegar 'par' ou 'par_bias_input'.
-      # A função de predição YELM_OBD espera par_bias_input.
-      # As funções de predição YELM, YELM_L2, YELM_pruned esperam 'par'.
-      # YELM_GAP_predict espera 'par_bias_input_pred'.
-      # É MELHOR PADRONIZAR OS NOMES DOS PARÂMETROS NAS FUNÇÕES DE PREDIÇÃO OU
-      # PASSAR O NOME CORRETO AQUI.
-      
-      # Vamos assumir que todas as predict_fn foram padronizadas para aceitar 'par_bias_input_arg'
-      # e 'par_for_predict' foi definido corretamente com base nos params do modelo.
-      # OU que a predict_fn usa '...' e pega o que precisa.
-      # O mais seguro é garantir que a lista de model_params tenha o nome de parâmetro
-      # que a respectiva predict_fn espera (ex: 'par' ou 'par_bias_input').
-      # E que predict_call_args use esse nome.
-      
-      # Ajuste para o nome do parâmetro de bias na função de predição
-      # Suas YELM, YELM_L2, YELM_pruned usam 'par'. YELM_OBD e YELM_GAP_predict usam 'par_bias_input'.
-      # Vamos tentar detectar isso com base no nome da função de predição.
       predict_par_name <- "par" # Default
       if (grepl("OBD", deparse(substitute(predict_fn))) || grepl("GAP", deparse(substitute(predict_fn)))) {
         predict_par_name <- "par_bias_input"
