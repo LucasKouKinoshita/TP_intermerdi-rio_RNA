@@ -1,10 +1,10 @@
 graphics.off() 
 rm(list = ls()) 
-library("mlbench") # Se for usar para outros datasets como BreastCancer
-library("corpcor") # Para pseudoinverse
-library("plot3D")  # Se for usar para plots
-library("GA")      # Para ELM_GAP
-library("caret")   # Para createFolds (validação cruzada)
+library("mlbench")
+library("corpcor") 
+library("plot3D")  
+library("GA")      
+library("caret")  
 
 train_elm_for_ga_fitness <- function(xin_f, yin_f, Z_subset_f, par_bias_input_f) {
   if (is.null(Z_subset_f) || ncol(Z_subset_f) == 0) {
@@ -84,30 +84,9 @@ ELM_GAP <- function(xin, yin, p_initial, par_bias_input, # <--- MUDANÇA AQUI no
   if (!is.null(seed_val)) {
     set.seed(seed_val)
   }
-  
-  # Use 'xin' e 'yin' internamente onde antes usava 'xin_train' e 'yin_train'
-  n_features <- ncol(xin) # <--- MUDANÇA AQUI
-  n_samples_train <- nrow(yin) # <--- MUDANÇA AQUI
-  
-  # ... (resto da sua função ELM_GAP, garantindo que usa 'xin' e 'yin') ...
-  # ... especialmente na chamada para fitness_fn_gap:
-  # fitness = fitness_fn_gap,
-  # Z_full_ref = Z_full_internal, 
-  # xin_fit = xin,  # <--- MUDANÇA AQUI
-  # yin_fit = yin,  # <--- MUDANÇA AQUI
-  # ...
-  
-  # Exemplo de chamada dentro de ELM_GAP para a função de fitness:
-  # (A sua definição de fitness_fn_gap já espera xin_fit, yin_fit, o que está bom,
-  #  apenas garanta que ELM_GAP passe xin e yin para esses argumentos)
-  #  ga_optim_results <- ga(..., xin_fit = xin, yin_fit = yin, ...) 
-  
-  # No final, ao treinar o modelo ELM final:
-  # final_elm_output <- train_elm_for_ga_fitness(xin, yin, Z_final_model, par_bias_input) # <--- MUDANÇA AQUI
-  
-  # ... (o corpo da sua função ELM_GAP continua, assegurando o uso de 'xin' e 'yin')
-  
-  # --- CORPO DA SUA FUNÇÃO ELM_GAP CONTINUA ABAIXO COM AS ADAPTAÇÕES ---
+
+  n_features <- ncol(xin)
+  n_samples_train <- nrow(yin) 
   
   cat("Gerando Z_full com", p_initial, "neurônios iniciais...\n")
   if (par_bias_input == 1) {
@@ -127,7 +106,7 @@ ELM_GAP <- function(xin, yin, p_initial, par_bias_input, # <--- MUDANÇA AQUI no
     elm_res <- train_elm_for_ga_fitness(xin_fit, yin_fit, Z_subset_fit, par_bias_fit) # train_elm_for_ga_fitness já espera xin_f, yin_f
     y_pred_fit <- elm_res$y_pred
     if (use_press_fit) {
-      # Implementação PRESS LOO aqui (atualmente simplificado)
+      # NAO USEI PRESS, MT COMPLEXO, fitness simplificada
       error_rate_val <- 1 - mean(sign(y_pred_fit) == yin_fit) 
       if(is.na(error_rate_val)) error_rate_val <- 1.0
     } else { 
