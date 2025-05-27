@@ -21,7 +21,7 @@ ELM_OBD <- function(xin, yin, Z_current, par_bias_input) {
     return(list(w = matrix(0,0,ncol(yin)), Haug = Haug_current, Z = Z_current, p_effective = 0))
   }
   
-  # Cálculo dos pesos da camada de saída 'w' usando pseudo-inversa (sem regularização L2)
+  # Cálculo dos pesos da camada de saída 'w' usando pseudo-inversa
   # w = Haug^+ * yin
   w_current <- corpcor::pseudoinverse(Haug_current) %*% yin
   
@@ -83,9 +83,7 @@ run_obd_elm_process <- function(xin, yin, p_initial, par_bias_input,
   active_neuron_indices_in_Z_full <- 1:p_initial
   Z_current_pruned <- Z_full
   W_final_model <- NULL 
-  # H_final_model <- NULL # Se precisar retornar H
   
-  # cat("  Iniciando loop de poda OBD (P inicial =", p_initial, ")\n") # Removido cat para ser usado em CV
   
   for (iter_obd_loop in 1:obd_max_iterations) {
     num_active_neurons <- length(active_neuron_indices_in_Z_full)
@@ -109,8 +107,7 @@ run_obd_elm_process <- function(xin, yin, p_initial, par_bias_input,
     neuron_saliencies_values <- saliencies_for_w[-1] # Ignora saliência do bias de saída
     
     if (length(neuron_saliencies_values) == 0) { break }
-    
-    # No seu código original, você usou 'pruning_rate' global, aqui usamos 'pruning_fraction' do parâmetro
+
     num_to_prune_this_iter <- ceiling(pruning_fraction * length(neuron_saliencies_values))
     
     if (length(neuron_saliencies_values) - num_to_prune_this_iter < min_neurons && 
@@ -132,11 +129,10 @@ run_obd_elm_process <- function(xin, yin, p_initial, par_bias_input,
     Z_current_pruned <- Z_full[, active_neuron_indices_in_Z_full, drop = FALSE]
   }
   
-  # Retreino final com o Z_current_pruned definitivo (importante!)
+  # Retreino final com o Z_current_pruned definitivo
   # Se o loop parou, W_final_model pode ser do Z anterior à última tentativa de poda.
   final_train_output <- ELM_OBD(xin, yin, Z_current_pruned, par_bias_input)
   W_final_model <- final_train_output$w
-  # H_final_model <- final_train_output$Haug # Se precisar retornar H, mas normalmente não para predição
   
   return(list(W = W_final_model, Z = Z_current_pruned, p_final = ncol(Z_current_pruned)))
 }
